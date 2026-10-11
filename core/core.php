@@ -32,10 +32,15 @@ function is_admin()
 }
 
 
+
 function require_login()
 {
     if (!is_logged_in()) {
-        header('Location: /shoppn/views/login.php');
+        $base_path = ($_SERVER['HTTP_HOST'] === 'localhost')
+            ? '/shoppn'
+            : '/~raicha.ibrahim/E-commerce/shoppn';
+
+        header('Location: ' . $base_path . '/views/login.php');
         exit();
     }
 }
@@ -45,7 +50,12 @@ function require_admin()
 {
     if (!is_admin()) {
         $_SESSION['error'] = 'You do not have permission to access this page.';
-        header('Location: /shoppn/index.php');
+
+        $base_path = ($_SERVER['HTTP_HOST'] === 'localhost')
+            ? '/shoppn'
+            : '/~raicha.ibrahim/E-commerce/shoppn';
+
+        header('Location: ' . $base_path . '/index.php');
         exit();
     }
 }

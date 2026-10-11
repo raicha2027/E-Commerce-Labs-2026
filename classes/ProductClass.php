@@ -1,9 +1,12 @@
+```php
 <?php
 
 require_once __DIR__ . '/../core/db_class.php';
 
 class ProductClass extends Database
 {
+    // ==================== BRAND METHODS ====================
+
     public function addBrand($name)
     {
         $stmt = $this->conn->prepare(
@@ -21,7 +24,6 @@ class ProductClass extends Database
         return false;
     }
 
-
     public function getAllBrands()
     {
         $stmt = $this->conn->prepare(
@@ -38,7 +40,6 @@ class ProductClass extends Database
         return $brands;
     }
 
-
     public function getBrandById($id)
     {
         $stmt = $this->conn->prepare(
@@ -46,7 +47,6 @@ class ProductClass extends Database
         );
 
         $stmt->bind_param('i', $id);
-
         $stmt->execute();
 
         $result = $stmt->get_result();
@@ -56,7 +56,6 @@ class ProductClass extends Database
 
         return $brand;
     }
-
 
     public function updateBrand($id, $name)
     {
@@ -72,81 +71,220 @@ class ProductClass extends Database
         }
 
         $stmt->close();
-
         return false;
     }
 
+
+    // ==================== CATEGORY METHODS ====================
+
     public function addCategory($name)
- {
-    $stmt = $this->conn->prepare(
-        'INSERT INTO categories (cat_name) VALUES (?)'
-    );
+    {
+        $stmt = $this->conn->prepare(
+            'INSERT INTO categories (cat_name) VALUES (?)'
+        );
 
-    $stmt->bind_param('s', $name);
+        $stmt->bind_param('s', $name);
 
-    if ($stmt->execute()) {
+        if ($stmt->execute()) {
+            $stmt->close();
+            return true;
+        }
+
         $stmt->close();
-        return true;
+        return false;
     }
 
-    $stmt->close();
+    public function getAllCategories()
+    {
+        $stmt = $this->conn->prepare(
+            'SELECT * FROM categories ORDER BY cat_name ASC'
+        );
 
-    return false;
- }
+        $stmt->execute();
 
+        $result = $stmt->get_result();
+        $categories = $result->fetch_all(MYSQLI_ASSOC);
 
- public function getAllCategories()
- {
-    $stmt = $this->conn->prepare(
-        'SELECT * FROM categories ORDER BY cat_name ASC'
-    );
-
-    $stmt->execute();
-
-    $result = $stmt->get_result();
-    $categories = $result->fetch_all(MYSQLI_ASSOC);
-
-    $stmt->close();
-
-    return $categories;
-  }
-
-  public function getCategoryById($id)
- {
-    $stmt = $this->conn->prepare(
-        'SELECT * FROM categories WHERE cat_id = ?'
-    );
-
-    $stmt->bind_param('i', $id);
-
-    $stmt->execute();
-
-    $result = $stmt->get_result();
-    $category = $result->fetch_assoc();
-
-    $stmt->close();
-
-    return $category;
- }
-
-
- public function updateCategory($id, $name)
- {
-    $stmt = $this->conn->prepare(
-        'UPDATE categories SET cat_name = ? WHERE cat_id = ?'
-    );
-
-    $stmt->bind_param('si', $name, $id);
-
-    if ($stmt->execute()) {
         $stmt->close();
-        return true;
+
+        return $categories;
     }
 
-    $stmt->close();
+    public function getCategoryById($id)
+    {
+        $stmt = $this->conn->prepare(
+            'SELECT * FROM categories WHERE cat_id = ?'
+        );
 
-    return false;
- }
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        $category = $result->fetch_assoc();
+
+        $stmt->close();
+
+        return $category;
+    }
+
+    public function updateCategory($id, $name)
+    {
+        $stmt = $this->conn->prepare(
+            'UPDATE categories SET cat_name = ? WHERE cat_id = ?'
+        );
+
+        $stmt->bind_param('si', $name, $id);
+
+        if ($stmt->execute()) {
+            $stmt->close();
+            return true;
+        }
+
+        $stmt->close();
+        return false;
+    }
+
+
+    // ==================== PRODUCT METHODS ====================
+
+    public function addProduct(
+        $cat,
+        $brand,
+        $title,
+        $price,
+        $desc,
+        $image_filename,
+        $keywords
+    ) {
+        $stmt = $this->conn->prepare(
+            'INSERT INTO products
+            (
+                product_cat,
+                product_brand,
+                product_title,
+                product_price,
+                product_desc,
+                product_image,
+                product_keywords
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)'
+        );
+
+        $stmt->bind_param(
+            'iisdsss',
+            $cat,
+            $brand,
+            $title,
+            $price,
+            $desc,
+            $image_filename,
+            $keywords
+        );
+
+        if ($stmt->execute()) {
+            $stmt->close();
+            return true;
+        }
+
+        $stmt->close();
+        return false;
+    }
+
+    public function updateProduct(
+        $id,
+        $cat,
+        $brand,
+        $title,
+        $price,
+        $desc,
+        $image_filename,
+        $keywords
+    ) {
+        $stmt = $this->conn->prepare(
+            'UPDATE products
+             SET product_cat = ?,
+                 product_brand = ?,
+                 product_title = ?,
+                 product_price = ?,
+                 product_desc = ?,
+                 product_image = ?,
+                 product_keywords = ?
+             WHERE product_id = ?'
+        );
+
+        $stmt->bind_param(
+            'iisdsssi',
+            $cat,
+            $brand,
+            $title,
+            $price,
+            $desc,
+            $image_filename,
+            $keywords,
+            $id
+        );
+
+        if ($stmt->execute()) {
+            $stmt->close();
+            return true;
+        }
+
+        $stmt->close();
+        return false;
+    }
+
+    public function getProductById($id)
+    {
+        $stmt = $this->conn->prepare(
+            'SELECT
+                p.*,
+                c.cat_name,
+                b.brand_name
+             FROM products p
+             LEFT JOIN categories c
+                ON p.product_cat = c.cat_id
+             LEFT JOIN brands b
+                ON p.product_brand = b.brand_id
+             WHERE p.product_id = ?'
+        );
+
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        $product = $result->fetch_assoc();
+
+        $stmt->close();
+
+        
+        return $product;
+    }
+
+    public function getAllProducts()
+    {
+        $stmt = $this->conn->prepare(
+            'SELECT
+                p.*,
+                c.cat_name,
+                b.brand_name
+             FROM products p
+             LEFT JOIN categories c
+                ON p.product_cat = c.cat_id
+             LEFT JOIN brands b
+                ON p.product_brand = b.brand_id
+             ORDER BY p.product_id DESC'
+        );
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        $products = $result->fetch_all(MYSQLI_ASSOC);
+
+        $stmt->close();
+
+        return $products;
+    }
 }
 
 ?>
+
