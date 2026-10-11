@@ -66,7 +66,7 @@ require_once __DIR__ . '/../layout/header.php';
 
 <style>
 .product-page {
-    max-width: 1150px;
+    max-width: 1120px;
     margin: 35px auto;
     padding: 0 20px 40px;
     color: #243047;

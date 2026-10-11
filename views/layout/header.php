@@ -139,6 +139,14 @@ if ($_SERVER['HTTP_HOST'] === 'localhost') {
                     Category
                 </a>
 
+                <a
+
+                    href="<?php echo $base_path; ?>/views/admin/product.php"
+                    class="<?php echo $current_page === 'product.php' ? 'active' : ''; ?>">
+                    Product
+                </a>
+
+
             <?php endif; ?>
 
             <a class="logout"
